@@ -1,0 +1,4 @@
+# exclude KiCAD Files
+**/datasheets
+**/midi2dmx-backups
+fp-info-cache
