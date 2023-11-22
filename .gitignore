@@ -2,3 +2,5 @@
 **/datasheets
 **/midi2dmx-backups
 fp-info-cache
+*.lck
+*auto_saved_files*
