@@ -1,6 +1,16 @@
-# exclude KiCAD Files
+# exclude KiCAD files
 **/datasheets
 **/midi2dmx-backups
 fp-info-cache
 *.lck
 *auto_saved_files*
+
+# exclude CMake build files
+**/build
+
+# exclude Doxygen output
+**/html
+**/latex
+
+# exclude VS Code workspace
+.vscode

@@ -1,0 +1,3 @@
+ContinuousController	KEYWORD1
+setGain	KEYWORD2
+toDmx	KEYWORD2
