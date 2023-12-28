@@ -24,7 +24,9 @@
 
 #include <stdint.h>
 
+#ifndef ARDUINO
 #include <functional>
+#endif
 
 #include "DmxValue.h"
 
@@ -37,7 +39,7 @@ static const uint16_t kGainDeadZone = 1; /**< the offset specifying the dead zon
  * @brief Definition of the callback signature
  *
  */
-#if 0
+#ifdef ARDUINO
 using DmxOnChangeCallback = void (*)(const uint8_t channel, const uint8_t value);
 #else
 using DmxOnChangeCallback = std::function<void(const uint8_t, const uint8_t)>;
