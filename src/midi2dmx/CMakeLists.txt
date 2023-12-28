@@ -55,7 +55,9 @@ endif (BUILD_DOC)
 ###########################################################
 # Add the static library target midi2dmx
 ###########################################################
-add_library(midi2dmx STATIC src/midi2dmx/ContinuousController.cpp)
+add_library(midi2dmx STATIC src/midi2dmx/ContinuousController.cpp
+                            src/midi2dmx/Dmx.cpp
+                            src/midi2dmx/DmxValue.cpp)
 
 set_target_properties(midi2dmx PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -71,7 +73,10 @@ target_include_directories(midi2dmx PRIVATE src/midi2dmx
 ###########################################################
 # Add binary target for the unit test executble
 ###########################################################
-add_executable(unittests tests/unittests.cpp tests/midi2dmx/ContinuousControllerTests.cpp)
+add_executable(unittests tests/unittests.cpp
+                         tests/midi2dmx/ContinuousControllerTests.cpp
+                         tests/midi2dmx/DmxTests.cpp
+                         tests/midi2dmx/DmxValueTests.cpp)
 target_link_libraries(unittests gtest gmock)
 target_link_libraries(unittests midi2dmx)
 add_test(NAME midi2dmx_unittest COMMAND unittests)

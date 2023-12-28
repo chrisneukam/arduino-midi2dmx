@@ -22,9 +22,13 @@
 #ifndef __MIDI2DMX_MIDI_H__
 #define __MIDI2DMX_MIDI_H__
 
-#include "Dmx.h"
+#include <stdint.h>
+
+#include "DmxValue.h"
 
 namespace midi2dmx::midi {
+
+using midi2dmx::dmx::DmxValue;
 
 /**
  * @brief This class defines the MIDI Continuous Controller (CC) for the conversion to a DMX value.
@@ -33,12 +37,20 @@ namespace midi2dmx::midi {
 class ContinuousController {
  public:
   /**
+   * @brief Default-Construct a new Continuous Controller object.
+   *
+   * All members will be set to zero.
+   *
+   */
+  ContinuousController();
+
+  /**
    * @brief Construct a new ContinuousController object.
    *
    * @param[in] controller the MIDI CC controller, i.e. the second MIDI byte
    * @param[in] value the MIDI CC controller value, i.e. the third MIDI byte
    */
-  ContinuousController(const unsigned int controller, const unsigned int value);
+  ContinuousController(const uint8_t controller, const uint8_t value);
 
   /**
    * @brief Destroy the ContinuousController object.
@@ -47,33 +59,33 @@ class ContinuousController {
   virtual ~ContinuousController() = default;
 
   /**
-   * @brief Set the DMX gain.
+   * @brief Compare operator for a ContinuousController object.
    *
-   * The gain is in the range [0, ::kUnityGainValue].
-   *
-   * @param[in] gain the integer based gain value to apply
+   * @param[in] rhs the right-hand-side ContinuousController oject to compare to
+   * @return true in case both object are equal
+   * @return false otherwise
    */
-  void setGain(const unsigned int gain);
+  bool operator==(const ContinuousController& rhs) const;
+
+  /**
+   * @brief Compare operator for a ContinuousController object.
+   *
+   * @param[in] rhs the right-hand-side ContinuousController oject to compare to
+   * @return true in case both object are equal
+   * @return false otherwise
+   */
+  bool operator!=(const ContinuousController& rhs) const;
 
   /**
    * @brief Convert the MIDI Continuous Controller command (CC) to a DMX command.
    *
-   * @return Dmx - the DMX value representing this MIDI CC command
+   * @return midi2dmx::dmx::DmxValue - the DMX value representing this MIDI CC command
    */
-  Dmx toDmx() const;
+  DmxValue toDmx() const;
 
  private:
-  /**
-   * @brief Apply the supplied gain value to the DMX value.
-   *
-   * @param[in] value the DMX value to apply the gain to
-   * @return unsigned int - the modified DMX value
-   */
-  unsigned int applyGain(const unsigned int value) const;
-
-  const unsigned int mController; /**< the MIDI CC controller */
-  const unsigned int mValue;      /**< the MIDI CC value */
-  unsigned int mGain;             /**< the gain to scale the value */
+  const uint8_t mController; /**< the MIDI CC controller */
+  const uint8_t mValue;      /**< the MIDI CC value */
 };
 }  // namespace midi2dmx::midi
 #endif

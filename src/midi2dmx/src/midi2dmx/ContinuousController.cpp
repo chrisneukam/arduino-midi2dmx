@@ -21,38 +21,28 @@
  */
 #include "ContinuousController.h"
 
+#include "util.h"
+
 namespace midi2dmx::midi {
-const unsigned int kMidiToDmxFactor = 2; /**< scaling factor converting midi to dmx */
-const unsigned int kMaxDmxValue = 255;   /**< maximum possible DMX value */
-const unsigned int kAnalogReadBits = 10; /**< bit resolution of analog read */
-const unsigned int kUnityGainValue = (1 << kAnalogReadBits); /**< factor representing unity gain */
+static const uint8_t kMidiToDmxFactor = 0x02; /**< scaling factor converting midi to dmx */
+static const uint8_t kMaxMidiValue = 0x7f;    /**< maximum possible MIDI value */
 
-/**
- * @brief constexpr definition of the min operation.
- *
- * @param[in] x the first value
- * @param[in] y the second value
- * @return unsigned int; the minumum value of x and y
- */
-constexpr unsigned int min(unsigned int x, unsigned int y) { return (x > y) ? y : x; }
+ContinuousController::ContinuousController() : mController(0), mValue(0) {}
 
-ContinuousController::ContinuousController(const unsigned int controller, const unsigned int value)
-    : mController(controller), mValue(value), mGain(kUnityGainValue) {}
+ContinuousController::ContinuousController(const uint8_t controller, const uint8_t value)
+    : mController(controller), mValue(min(value, kMaxMidiValue)) {}
 
-Dmx ContinuousController::toDmx() const {
-  unsigned dmxValue = mValue * kMidiToDmxFactor;
-
-  if (dmxValue > kMaxDmxValue) {
-    dmxValue = kMaxDmxValue;
-  }
-
-  return {mController, applyGain(dmxValue)};
+bool ContinuousController::operator==(const ContinuousController& rhs) const {
+  return mController == rhs.mController && mValue == rhs.mValue;
 }
 
-void ContinuousController::setGain(const unsigned int gain) { mGain = min(gain, kUnityGainValue); }
+bool ContinuousController::operator!=(const ContinuousController& rhs) const {
+  return !(*this == rhs);
+}
 
-unsigned ContinuousController::applyGain(const unsigned int value) const {
-  return (value * mGain) >> kAnalogReadBits;
+DmxValue ContinuousController::toDmx() const {
+  const uint8_t value = mValue * kMidiToDmxFactor;
+  return {mController, value};
 }
 
 /*

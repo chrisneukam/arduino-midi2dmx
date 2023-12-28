@@ -38,20 +38,6 @@
 #define __MIDI2DMX_H__
 
 #include "midi2dmx/ContinuousController.h"
-
-/**
- * @brief This namespace defines the scope of the \p midi2dmx library.
- *
- * It contains all classes, functions and symbols that are available both publicly and privately.
- *
- */
-namespace midi2dmx {}
-
-/**
- * @brief This namespace bundles all entities of the \p midi2dmx library that relate to MIDI input
- * and output.
- *
- */
-namespace midi2dmx::midi {}
+#include "midi2dmx/Dmx.h"
 
 #endif

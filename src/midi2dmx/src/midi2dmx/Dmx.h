@@ -19,31 +19,92 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __MIDI2DMX_TYPES_H__
-#define __MIDI2DMX_TYPES_H__
+#ifndef __MIDI2DMX_DMX_H__
+#define __MIDI2DMX_DMX_H__
 
-namespace midi2dmx {
+#include <stdint.h>
+
+#include <functional>
+
+#include "DmxValue.h"
+
+namespace midi2dmx::dmx {
+static const uint8_t kAnalogReadBits = 10; /**< bit resolution of analog read */
+static const uint16_t kUnityGainValue = (1 << kAnalogReadBits); /**< factor for unity gain */
+static const uint16_t kGainDeadZone = 1; /**< the offset specifying the dead zone for gain values */
+
 /**
- * @brief This struct defines a DMX datum.
+ * @brief Definition of the callback signature
  *
  */
-struct Dmx {
+#if 0
+using DmxOnChangeCallback = void (*)(const uint8_t channel, const uint8_t value);
+#else
+using DmxOnChangeCallback = std::function<void(const uint8_t, const uint8_t)>;
+#endif
+
+/**
+ * @brief This class provides the processing of DMX values.
+ *
+ */
+class Dmx {
+ public:
   /**
-   * @brief Construct a new Dmx object
+   * @brief Default-Construct a new Dmx object.
    *
-   * @param[in] channel the DMX channel
-   * @param[in] value the DMX value
+   * An object created via this constructor does not support update notification via callbacks.
+   *
    */
-  Dmx(const unsigned int channel, const unsigned int value) : channel(channel), value(value) {}
+  Dmx();
 
   /**
-   * @brief Destroy the Dmx object
+   * @brief Construct a new Dmx object.
+   *
+   * An object created via this constructor calls the registered callback as soon as the DMX values
+   * have changed.
+   *
+   * @param[in] callback the callback to trigger once the DMX values change
+   */
+  Dmx(DmxOnChangeCallback callback);
+
+  /**
+   * @brief Destroy the Dmx object.
    *
    */
   virtual ~Dmx() = default;
 
-  const unsigned int channel; /**< the DMX channel */
-  const unsigned int value;   /**< the DMX value */
+  /**
+   * @brief Update the DMX gain.
+   *
+   * The gain is only updated if the parameter passed is outside the dead zone as indicated by
+   * \p kGainDeadZone. This behavior can be overridden via the parameter \p force.
+   *
+   * The gain shall be in the range [0, ::kUnityGainValue] otherwise it is clipped.
+   *
+   * @param[in] gain the integer based gain value to apply
+   * @param[in] force force the update of the gain value
+   */
+  void update(const uint16_t gain, const bool force = false);
+
+  /**
+   * @brief Update the DMX value pair.
+   *
+   * @param[in] dmxValue the DMX value pair to apply
+   * @param[in] force force the update of the DMX value
+   */
+  void update(const DmxValue& dmxValue, const bool force = false);
+
+ private:
+  /**
+   * @brief Apply the supplied gain value to the DMX value.
+   *
+   * @return uint8_t - the modified DMX value
+   */
+  uint8_t valueScaled() const;
+
+  DmxValue mDmxValue;            /**< the current DMX value pair */
+  uint16_t mGain;                /**< the current DMX gain factor */
+  DmxOnChangeCallback mCallback; /**< the registered on-change callback */
 };
-}  // namespace midi2dmx
+}  // namespace midi2dmx::dmx
 #endif

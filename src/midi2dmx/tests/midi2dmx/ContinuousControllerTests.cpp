@@ -1,5 +1,5 @@
 /**
- * @file midi2dmx.h
+ * @file ContinuousControllerTests.cpp
  * @author Christian Neukam
  * @brief Unit Tests for the midi2dmx::midi::ContinuousController
  * @version 1.0
@@ -24,86 +24,90 @@
 
 #include "midi2dmx.h"
 
-/**
- * @brief This namespace bundles all components that are required for the execution of unit tests of
- * the \p midi2dmx library.
- *
- */
 namespace midi2dmx::unittest {
 using namespace midi2dmx;
 
-constexpr unsigned int kMidiMaxValue = 0x7f; /**< maximum allowed MIDI CC value */
-constexpr unsigned int kDmxMaxValue = 255;   /**< maximum allowed DMX value */
-constexpr unsigned int kGainMaxValue = 1024; /**< maximum allowed gain value */
+static const uint8_t kMidiMaxValue = 0x7f; /**< maximum allowed MIDI CC value (127) */
+static const uint8_t kDmxMaxValue = 0xfe;  /**< maximum possible DMX value (254) */
 
 /**
  * @brief This class provides the fixture for the Test Suite, which checks the MIDI Continuous
- * Controller (CC) conversion to DMX with unity gain.
+ * Controller (CC).
  *
  */
-class MidiCcInputRangeTestSuite : public testing::TestWithParam<unsigned int> {};
+class MidiCcTestSuite : public testing::Test {};
 
 /**
  * @brief This class provides the fixture for the Test Suite, which checks the MIDI Continuous
- * Controller (CC) conversion to DMX with variable gain.
+ * Controller (CC) conversion to DMX values.
  *
  */
-class GainInputRangeTestSuite
-    : public testing::TestWithParam<std::tuple<unsigned int, unsigned int>> {};
+class MidiCcInputRangeTestSuite : public testing::TestWithParam<std::tuple<uint8_t, uint8_t>> {};
 
 /**
- * @brief This matcher checks two midi2dmx::Dmx objects for equality.
+ * @brief This matcher checks two midi2dmx::DmxValue objects for equality.
  *
  */
-MATCHER_P(EQ, other, "") { return (arg.channel == other.channel) && (arg.value == other.value); }
+MATCHER_P(EQ, other, "") {
+  return (arg.channel() == other.channel()) && (arg.value() == other.value());
+}
 
 /**
  * @brief This test suite checks the conversion of MIDI signals into DMX control signals.
  *
  * The test design is based on boundary-value analysis with the following equivalence groups:
  *
- * | value range | description |
- * | ----------- | ----------- |
- * | (-inf, 0)   | not required -> input range is unsigned |
- * | [0, 1]      | lower boundary, valid input |
- * | [126, 127]  | upper boundary, valid input |
- * | [128, inf)  | invalid value range, triggers clipping |
+ * | MIDI \p channel range | description |
+ * | --------------------- | ----------- |
+ * | (-inf, 0)  | not required -> input range is unsigned |
+ * | [0, 1]     | lower boundary, valid input |
+ * | [126, 127] | upper boundary, valid input |
+ * | [128, inf) | invalid value range, triggers clipping |
+ *
+ * | MIDI \p value range | description |
+ * | ------------------- | ----------- |
+ * | (-inf, 0)  | not required -> input range is unsigned |
+ * | [0, 1]     | lower boundary, valid input |
+ * | [254, 255] | upper boundary, valid input |
+ * | [256, inf) | not required -> input range is 8 bit only |
  *
  * @see MidiCcInputRangeTestSuite
  */
 INSTANTIATE_TEST_SUITE_P(
     ContinuousController, MidiCcInputRangeTestSuite,
-    testing::Values(0, 1, kMidiMaxValue - 1, kMidiMaxValue, kMidiMaxValue + 1),
-    [](const testing::TestParamInfo<MidiCcInputRangeTestSuite::ParamType>& info) {
-      return std::to_string(info.param);
-    });
-
-/**
- * @brief This test suite checks the attenuation of converted DMX control signals.
- *
- * @note A gain value of 1024 means unity gain, values lower than this mean a reduction. Values
- * greater than 1024 are not permitted and are clipped to 1024.
- *
- * The test design is based on boundary-value analysis with the following equivalence groups:
- *
- * | value range  | description |
- * | ------------ | ----------- |
- * | (-inf, 0)    | not required -> input range is unsigned |
- * | [0, 1]       | lower boundary, valid input |
- * | [1023, 1024] | upper boundary, valid input |
- * | [1025, inf)  | invalid value range, triggers clipping |
- *
- * @see GainInputRangeTestSuite
- */
-INSTANTIATE_TEST_SUITE_P(
-    ContinuousController, GainInputRangeTestSuite,
-    testing::Combine(testing::Values(0, 1, kGainMaxValue - 1, kGainMaxValue, kGainMaxValue + 1),
+    testing::Combine(testing::Values(0, 1, 254, 255),
                      testing::Values(0, 1, kMidiMaxValue - 1, kMidiMaxValue, kMidiMaxValue + 1)),
-    [](const testing::TestParamInfo<GainInputRangeTestSuite::ParamType>& info) {
+    [](const testing::TestParamInfo<MidiCcInputRangeTestSuite::ParamType>& info) {
       std::string name =
           std::to_string(std::get<0>(info.param)) + "_" + std::to_string(std::get<1>(info.param));
       return name;
     });
+
+/**
+ * @brief This test case checks whether the default constructor of the
+ * midi2dmx::midi::ContinuousController initializes a new object equal to
+ * midi2dmx::midi::ContinuousController(0, 0).
+ *
+ */
+TEST_F(MidiCcTestSuite, construct_default) {
+  midi::ContinuousController cc;
+
+  EXPECT_EQ(cc, midi::ContinuousController(0, 0));
+}
+
+/**
+ * @brief This test case checks whether the compare operators of a
+ * midi2dmx::midi::ContinuousController return the anticipated result.
+ *
+ */
+TEST_F(MidiCcTestSuite, compare_operators) {
+  midi::ContinuousController cc{21, 42};
+
+  EXPECT_TRUE(cc == midi::ContinuousController(cc));
+  EXPECT_FALSE(cc != midi::ContinuousController(cc));
+  EXPECT_FALSE(cc == midi::ContinuousController());
+  EXPECT_TRUE(cc != midi::ContinuousController());
+}
 
 /**
  * @brief This test case checks whether the function midi2dmx::midi::ContinuousController::toDmx()
@@ -111,25 +115,12 @@ INSTANTIATE_TEST_SUITE_P(
  * corresponds to the DMX channel and the MIDI CC value corresponds to the DMX value.
  *
  */
-TEST_P(MidiCcInputRangeTestSuite, toDmx_without_gain) {
-  const auto midiValue = GetParam();
-  const unsigned int dmxValue = std::min(midiValue * 2, kDmxMaxValue);
-  midi::ContinuousController dut{0, midiValue};
+TEST_P(MidiCcInputRangeTestSuite, toDmx_scalesDmxValue) {
+  const auto [midiChannel, midiValue] = GetParam();
+  const uint8_t dmxValue = (midiValue > kMidiMaxValue) ? kDmxMaxValue : midiValue * 2;
+  const uint8_t dmxChannel = midiChannel;
+  midi::ContinuousController dut{midiChannel, midiValue};
 
-  EXPECT_THAT(dut.toDmx(), EQ(Dmx{0, dmxValue}));
-}
-
-/**
- * @brief This test case checks whether the function midi2dmx::midi::ContinuousController::toDmx()
- * applies a gain value to the resulting DMX signal, where 1024 means unity gain.
- *
- */
-TEST_P(GainInputRangeTestSuite, toDmx_with_gain) {
-  const auto [gain, midiValue] = GetParam();
-  const unsigned int dmxValue = (gain * std::min(midiValue * 2, kDmxMaxValue)) / 1024;
-  midi::ContinuousController dut{0, midiValue};
-  dut.setGain(gain);
-
-  EXPECT_THAT(dut.toDmx(), EQ(Dmx{0, dmxValue}));
+  EXPECT_THAT(dut.toDmx(), EQ(dmx::DmxValue{dmxChannel, dmxValue}));
 }
 }  // namespace midi2dmx::unittest
