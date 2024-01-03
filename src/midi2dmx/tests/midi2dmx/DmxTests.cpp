@@ -24,7 +24,7 @@
 
 #include <functional>
 
-#include "midi2dmx.h"
+#include "Dmx.h"
 
 namespace midi2dmx::unittest {
 using namespace midi2dmx::dmx;
@@ -47,7 +47,7 @@ class DmxTestSuite : public ::testing::Test {
                        std::placeholders::_2)) {}
 
   /**
-   * @brief Construct a new mock method object
+   * @brief Mock method for midi2dmx::dmx::DmxOnChangeCallback.
    *
    */
   MOCK_METHOD(void, onChangeCallback, (const uint8_t channel, const uint8_t value), ());
@@ -72,7 +72,7 @@ class DmxGainTestSuite : public ::testing::TestWithParam<uint16_t> {
                        std::placeholders::_2)) {}
 
   /**
-   * @brief Construct a new mock method object
+   * @brief Construct a new mock method object.
    *
    */
   MOCK_METHOD(void, onChangeCallback, (const uint8_t channel, const uint8_t value), ());
@@ -137,7 +137,7 @@ INSTANTIATE_TEST_SUITE_P(
  * applies a gain value to the resulting DMX signal, where 1024 means unity gain.
  *
  */
-TEST_P(DmxGainTestSuite, update_gain_forcedTrue) {
+TEST_P(DmxGainTestSuite, update_gain_forcedTrue_triggers_callback) {
   const auto gain = GetParam();
   const uint8_t dmxValue = 255u;
   const uint8_t dmxValueGain = (dmxValue * gain) / kGainMaxValue;
@@ -159,7 +159,7 @@ TEST_P(DmxGainTestSuite, update_gain_forcedTrue) {
  * applies a gain value to the resulting DMX signal, where 1024 means unity gain.
  *
  */
-TEST_P(DmxGainDeadZoneTestSuite, update_gain_deadZone) {
+TEST_P(DmxGainDeadZoneTestSuite, update_gain_deadZone_triggers_callback) {
   const uint16_t gainInit = kGainMaxValue >> 1;
   const auto gain = GetParam();
   const uint8_t dmxValue = 126 << 1;

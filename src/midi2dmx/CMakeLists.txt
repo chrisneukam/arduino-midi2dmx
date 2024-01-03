@@ -57,14 +57,16 @@ endif (BUILD_DOC)
 ###########################################################
 add_library(midi2dmx STATIC src/midi2dmx/ContinuousController.cpp
                             src/midi2dmx/Dmx.cpp
-                            src/midi2dmx/DmxValue.cpp)
+                            src/midi2dmx/DmxValue.cpp
+                            src/midi2dmx/Midi2Dmx.cpp
+                            src/midi2dmx/MidiReader.cpp)
 
 set_target_properties(midi2dmx PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR})
 
-target_include_directories(midi2dmx PRIVATE src/midi2dmx
-                                    INTERFACE src)
+target_include_directories(midi2dmx PUBLIC src
+                                           src/midi2dmx)
 
 # install(TARGETS midi2dmx
 #     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -76,7 +78,11 @@ target_include_directories(midi2dmx PRIVATE src/midi2dmx
 add_executable(unittests tests/unittests.cpp
                          tests/midi2dmx/ContinuousControllerTests.cpp
                          tests/midi2dmx/DmxTests.cpp
-                         tests/midi2dmx/DmxValueTests.cpp)
+                         tests/midi2dmx/DmxValueTests.cpp
+                         tests/midi2dmx/Midi2DmxTests.cpp
+                         tests/midi2dmx/MidiReaderTest.cpp
+                         tests/mocks/SerialReaderMock.cpp)
+target_include_directories(unittests PRIVATE tests/mocks)
 target_link_libraries(unittests gtest gmock)
 target_link_libraries(unittests midi2dmx)
 add_test(NAME midi2dmx_unittest COMMAND unittests)

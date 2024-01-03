@@ -1,7 +1,7 @@
 /**
  * @file DmxValue.h
  * @author Christian Neukam
- * @brief Definition of the midi2dmx::Dmx class
+ * @brief Definition of the midi2dmx::dmx::DmxValue class
  * @version 1.0
  * @date 2023-12-28
  *
@@ -55,7 +55,7 @@ class DmxValue {
   DmxValue& operator=(const DmxValue& rhs);
 
   /**
-   * @brief Compare operator for a DmxValue object
+   * @brief Compare operator for a DmxValue object.
    *
    * @param[in] rhs the right-hand-side DmxValue oject to compare to
    * @return true in case both object are equal
@@ -64,7 +64,7 @@ class DmxValue {
   bool operator==(const DmxValue& rhs) const;
 
   /**
-   * @brief Compare operator for a DmxValue object
+   * @brief Compare operator for a DmxValue object.
    *
    * @param[in] rhs the right-hand-side DmxValue oject to compare to
    * @return true in case both object are equal
@@ -73,14 +73,14 @@ class DmxValue {
   bool operator!=(const DmxValue& rhs) const;
 
   /**
-   * @brief Get the DMX channel
+   * @brief Get the DMX channel.
    *
    * @return uint8_t - the dmx channel
    */
   uint8_t channel() const;
 
   /**
-   * @brief Get the DMX value
+   * @brief Get the DMX value.
    *
    * @return uint8_t - the DMX value
    */

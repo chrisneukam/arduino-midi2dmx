@@ -1,7 +1,7 @@
 /**
  * @file Dmx.cpp
  * @author Christian Neukam
- * @brief Definition of the midi2dmx::Dmx class
+ * @brief Implementation of the midi2dmx::dmx::Dmx class
  * @version 1.0
  * @date 2023-12-25
  *
@@ -21,11 +21,13 @@
  */
 #include "Dmx.h"
 
+#include "ContinuousController.h"
 #include "util.h"
 
 namespace midi2dmx::dmx {
+using namespace midi2dmx::util;
 
-Dmx::Dmx() : Dmx(nullptr) {}
+using midi::ContinuousController;
 
 Dmx::Dmx(DmxOnChangeCallback callback)
     : mDmxValue(0, 0), mGain(kUnityGainValue), mCallback(callback) {}
@@ -54,5 +56,9 @@ void Dmx::update(const DmxValue& dmxValue, const bool force) {
   if (mCallback && (triggerCallback || force)) {
     mCallback(mDmxValue.channel(), valueScaled());
   }
+}
+
+void Dmx::update(const uint8_t midiCcChannel, const uint8_t midiCcValue) {
+  update(ContinuousController{midiCcChannel, midiCcValue}.toDmx());
 }
 }  // namespace midi2dmx::dmx

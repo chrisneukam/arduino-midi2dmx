@@ -1,11 +1,11 @@
 /**
- * @file midi2dmx.h
+ * @file Midi2Dmx.cpp
  * @author Christian Neukam
- * @brief Unit Test binary executable.
+ * @brief Implementation of the Midi2Dmx class.
  * @version 1.0
- * @date 2023-12-12
+ * @date 2024-01-04
  *
- * @copyright Copyright 2023 Christian Neukam. All rights reserved.
+ * @copyright Copyright 2024 Christian Neukam. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
+#include "../midi2dmx.h"
 
-/**
- * @brief The main function of the gtest based unit tests.
- *
- * @param[in] argc the number of command line arguments, not used
- * @param[in] argv the command line arguments, not used
- * @return int - the return code: success = 0, fail otherwise
- */
-int main(int argc, char **argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+#include "ContinuousController.h"
+
+Midi2Dmx::Midi2Dmx(const uint8_t channel, DmxOnChangeCallback callback, ISerialReader& serial)
+    : mDmx(callback), mReader(channel, serial) {}
+
+void Midi2Dmx::gainUpdate(const uint16_t gain) { mDmx.update(gain); }
+
+void Midi2Dmx::serialUpdate() {
+  uint8_t controller;
+  uint8_t value;
+
+  if (mReader.readCc(controller, value)) {
+    mDmx.update(controller, value);
+  }
 }

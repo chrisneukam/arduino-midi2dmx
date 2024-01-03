@@ -1,7 +1,7 @@
 /**
  * @file util.h
  * @author Christian Neukam
- * @brief Definition of the midi2dmx::Dmx class
+ * @brief Utilities of the midi2dmx library.
  * @version 1.0
  * @date 2023-12-25
  *
@@ -22,6 +22,7 @@
 #ifndef __MIDI2DMX_UTIL_H__
 #define __MIDI2DMX_UTIL_H__
 
+namespace midi2dmx::util {
 /**
  * @brief constexpr definition of the min operation.
  *
@@ -47,5 +48,5 @@ template <typename T>
 constexpr T max(T x, T y) {
   return (x > y) ? x : y;
 }
-
+}  // namespace midi2dmx::util
 #endif

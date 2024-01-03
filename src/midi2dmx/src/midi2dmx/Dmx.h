@@ -1,7 +1,7 @@
 /**
  * @file Dmx.h
  * @author Christian Neukam
- * @brief Definition of the midi2dmx::Dmx class
+ * @brief Definition of the midi2dmx::dmx::Dmx class
  * @version 1.0
  * @date 2023-12-12
  *
@@ -36,7 +36,7 @@ static const uint16_t kUnityGainValue = (1 << kAnalogReadBits); /**< factor for 
 static const uint16_t kGainDeadZone = 1; /**< the offset specifying the dead zone for gain values */
 
 /**
- * @brief Definition of the callback signature
+ * @brief Definition of the callback signature.
  *
  */
 #ifdef ARDUINO
@@ -51,14 +51,6 @@ using DmxOnChangeCallback = std::function<void(const uint8_t, const uint8_t)>;
  */
 class Dmx {
  public:
-  /**
-   * @brief Default-Construct a new Dmx object.
-   *
-   * An object created via this constructor does not support update notification via callbacks.
-   *
-   */
-  Dmx();
-
   /**
    * @brief Construct a new Dmx object.
    *
@@ -89,12 +81,20 @@ class Dmx {
   void update(const uint16_t gain, const bool force = false);
 
   /**
-   * @brief Update the DMX value pair.
+   * @brief Update the DMX value pair based on a midi2dmx::dmx::DmxValue.
    *
    * @param[in] dmxValue the DMX value pair to apply
    * @param[in] force force the update of the DMX value
    */
   void update(const DmxValue& dmxValue, const bool force = false);
+
+  /**
+   * @brief Update the DMX value pair based on MIDI CC values.
+   *
+   * @param[in] midiCcChannel the input MIDI CC channel
+   * @param[in] midiCcValue the input MIDI CC value
+   */
+  void update(const uint8_t midiCcChannel, const uint8_t midiCcValue);
 
  private:
   /**

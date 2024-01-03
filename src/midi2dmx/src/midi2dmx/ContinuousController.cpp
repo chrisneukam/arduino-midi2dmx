@@ -21,9 +21,12 @@
  */
 #include "ContinuousController.h"
 
+#include "DmxValue.h"
 #include "util.h"
 
 namespace midi2dmx::midi {
+using namespace midi2dmx::util;
+
 static const uint8_t kMidiToDmxFactor = 0x02; /**< scaling factor converting midi to dmx */
 static const uint8_t kMaxMidiValue = 0x7f;    /**< maximum possible MIDI value */
 
@@ -44,21 +47,4 @@ DmxValue ContinuousController::toDmx() const {
   const uint8_t value = mValue * kMidiToDmxFactor;
   return {mController, value};
 }
-
-/*
- * MIDI Protocol:
- * Statusbyte - Datenbyte 1 - Datenbyte 2
- * [80, FF]   - [00, 7F]    - [00, 7F]
- *
- * Statusbyte:
- * 0000   0000
- * Befehl Kanal
- *
- * relevantes Statusbyte:
- * Bn -> Control Change
- *
- * DMX Protocol:
- * up to 512 data channels
- * 8 bit per channel
- */
 }  // namespace midi2dmx::midi

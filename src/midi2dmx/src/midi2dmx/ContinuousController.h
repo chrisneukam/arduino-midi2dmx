@@ -19,12 +19,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __MIDI2DMX_MIDI_H__
-#define __MIDI2DMX_MIDI_H__
+#ifndef __MIDI2DMX_MIDI_CC_H__
+#define __MIDI2DMX_MIDI_CC_H__
 
 #include <stdint.h>
 
-#include "DmxValue.h"
+namespace midi2dmx::dmx {
+class DmxValue; /**< forward declaration */
+}
 
 namespace midi2dmx::midi {
 

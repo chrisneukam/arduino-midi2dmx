@@ -22,7 +22,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "midi2dmx.h"
+#include "DmxValue.h"
 
 namespace midi2dmx::unittest {
 using namespace midi2dmx::dmx;
@@ -39,7 +39,7 @@ class DmxValueTestSuite : public testing::Test {};
  * initializes a new object equal to the right-hand-side object.
  *
  */
-TEST_F(DmxValueTestSuite, construct_copy) {
+TEST_F(DmxValueTestSuite, construct_copy_shall_pass) {
   DmxValue dmxValue{21, 42};
 
   EXPECT_EQ(dmxValue, DmxValue(dmxValue));
@@ -50,7 +50,7 @@ TEST_F(DmxValueTestSuite, construct_copy) {
  * initializes a new object equal to the right-hand-side object.
  *
  */
-TEST_F(DmxValueTestSuite, construct_assignment) {
+TEST_F(DmxValueTestSuite, construct_assignment_shall_pass) {
   DmxValue dmxValue{21, 42};
 
   auto dut = dmxValue;
@@ -62,7 +62,7 @@ TEST_F(DmxValueTestSuite, construct_assignment) {
  * the anticipated result.
  *
  */
-TEST_F(DmxValueTestSuite, compare_operators) {
+TEST_F(DmxValueTestSuite, compare_operators_shall_pass) {
   DmxValue dmxValue{21, 42};
 
   EXPECT_TRUE(dmxValue == DmxValue(dmxValue));

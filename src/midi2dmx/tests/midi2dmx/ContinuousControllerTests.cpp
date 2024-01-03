@@ -22,10 +22,12 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "midi2dmx.h"
+#include "ContinuousController.h"
+#include "DmxValue.h"
 
 namespace midi2dmx::unittest {
-using namespace midi2dmx;
+using midi2dmx::dmx::DmxValue;
+using midi2dmx::midi::ContinuousController;
 
 static const uint8_t kMidiMaxValue = 0x7f; /**< maximum allowed MIDI CC value (127) */
 static const uint8_t kDmxMaxValue = 0xfe;  /**< maximum possible DMX value (254) */
@@ -90,9 +92,9 @@ INSTANTIATE_TEST_SUITE_P(
  *
  */
 TEST_F(MidiCcTestSuite, construct_default) {
-  midi::ContinuousController cc;
+  ContinuousController cc;
 
-  EXPECT_EQ(cc, midi::ContinuousController(0, 0));
+  EXPECT_EQ(cc, ContinuousController(0, 0));
 }
 
 /**
@@ -100,13 +102,13 @@ TEST_F(MidiCcTestSuite, construct_default) {
  * midi2dmx::midi::ContinuousController return the anticipated result.
  *
  */
-TEST_F(MidiCcTestSuite, compare_operators) {
-  midi::ContinuousController cc{21, 42};
+TEST_F(MidiCcTestSuite, compare_operators_shall_pass) {
+  ContinuousController cc{21, 42};
 
-  EXPECT_TRUE(cc == midi::ContinuousController(cc));
-  EXPECT_FALSE(cc != midi::ContinuousController(cc));
-  EXPECT_FALSE(cc == midi::ContinuousController());
-  EXPECT_TRUE(cc != midi::ContinuousController());
+  EXPECT_TRUE(cc == ContinuousController(cc));
+  EXPECT_FALSE(cc != ContinuousController(cc));
+  EXPECT_FALSE(cc == ContinuousController());
+  EXPECT_TRUE(cc != ContinuousController());
 }
 
 /**
@@ -115,12 +117,12 @@ TEST_F(MidiCcTestSuite, compare_operators) {
  * corresponds to the DMX channel and the MIDI CC value corresponds to the DMX value.
  *
  */
-TEST_P(MidiCcInputRangeTestSuite, toDmx_scalesDmxValue) {
+TEST_P(MidiCcInputRangeTestSuite, toDmx_scalesDmxValue_shall_pass) {
   const auto [midiChannel, midiValue] = GetParam();
   const uint8_t dmxValue = (midiValue > kMidiMaxValue) ? kDmxMaxValue : midiValue * 2;
   const uint8_t dmxChannel = midiChannel;
-  midi::ContinuousController dut{midiChannel, midiValue};
+  ContinuousController dut{midiChannel, midiValue};
 
-  EXPECT_THAT(dut.toDmx(), EQ(dmx::DmxValue{dmxChannel, dmxValue}));
+  EXPECT_THAT(dut.toDmx(), EQ(DmxValue{dmxChannel, dmxValue}));
 }
 }  // namespace midi2dmx::unittest

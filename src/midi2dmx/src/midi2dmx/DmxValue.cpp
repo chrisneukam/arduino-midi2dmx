@@ -1,7 +1,7 @@
 /**
  * @file DmxValue.cpp
  * @author Christian Neukam
- * @brief Definition of the midi2dmx::Dmx class
+ * @brief Implementation of the midi2dmx::dmx::DmxValue class
  * @version 1.0
  * @date 2023-12-28
  *
