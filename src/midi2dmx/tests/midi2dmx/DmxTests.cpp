@@ -1,7 +1,7 @@
 /**
  * @file DmxTests.cpp
  * @author Christian Neukam
- * @brief Unit Tests for the midi2dmx::dmx::Dmx
+ * @brief Unit Tests for the midi2dmx::dmx::Dmx class
  * @version 1.0
  * @date 2023-12-28
  *
@@ -81,7 +81,8 @@ class DmxGainTestSuite : public ::testing::TestWithParam<uint16_t> {
   Dmx mDut; /**< the device under test */
 };
 
-class DmxGainDeadZoneTestSuite : public DmxGainTestSuite {};
+class DmxGainOutsideDeadZoneTestSuite : public DmxGainTestSuite {};
+class DmxGainInsideDeadZoneTestSuite : public DmxGainTestSuite {};
 
 /**
  * @brief This test suite checks the attenuation of DMX control signals.
@@ -108,8 +109,8 @@ INSTANTIATE_TEST_SUITE_P(DMX, DmxGainTestSuite,
                          });
 
 /**
- * @brief This test suite checks the attenuation of DMX control signals using a dead zone not
- * triggering DMX value updates.
+ * @brief This test suite checks the attenuation of DMX control signals in case the gain is outside
+ * the dead zone.
  *
  * @note The dead zone of the gain values is defined in the range of [-1, 1] around the current gain
  * value.
@@ -119,16 +120,42 @@ INSTANTIATE_TEST_SUITE_P(DMX, DmxGainTestSuite,
  *
  * | gain range   | description |
  * | ------------ | ----------- |
- * | [0, 510]     | will trigger a DMX gain update |
- * | [511, 513]   | within the dead zone around 512, will not trigger a DMX gain update |
- * | [514, 1024]  | will trigger a DMX gain update |
+ * | [0, 1]       | lower boundary, will trigger a DMX gain update |
+ * | [1023, 1024] | upper boundary, will trigger a DMX gain update |
  *
- * @see DmxGainTestSuite
+ * @see DmxGainOutsideDeadZoneTestSuite
  */
 INSTANTIATE_TEST_SUITE_P(
-    DMX, DmxGainDeadZoneTestSuite,
+    DMX, DmxGainOutsideDeadZoneTestSuite,
     testing::Values(0, 1, 509, 510, 511, 512, 513, 514, 515, 1023, 1024),
-    [](const testing::TestParamInfo<DmxGainDeadZoneTestSuite::ParamType>& info) {
+    [](const testing::TestParamInfo<DmxGainOutsideDeadZoneTestSuite::ParamType>& info) {
+      return std::to_string(info.param);
+    });
+
+/**
+ * @brief This test suite checks the attenuation of DMX control signals in case the gain is outside
+ * the dead zone.
+ *
+ * @note The dead zone of the gain values is defined in the range of [-1, 1] around the current gain
+ * value.
+ *
+ * @note The values 510 and 514 are not explicitly checked as they result in the same values as the
+ * boundary gain values due to rounding effects.
+ *
+ * The test design is based on boundary-value analysis with the following equivalence
+ * groups:
+ *
+ * | gain range   | description |
+ * | ------------ | ----------- |
+ * | [0, 510]     | outside dead zone, will trigger a callback |
+ * | [511, 513]   | gain inside the dead zone assuming a pre gain of 512 |
+ * | [514, 1024]  | outside dead zone, will trigger a callback |
+ *
+ * @see DmxGainInsideDeadZoneTestSuite
+ */
+INSTANTIATE_TEST_SUITE_P(
+    DMX, DmxGainInsideDeadZoneTestSuite, testing::Values(500, 511, 512, 513, 600),
+    [](const testing::TestParamInfo<DmxGainInsideDeadZoneTestSuite::ParamType>& info) {
       return std::to_string(info.param);
     });
 
@@ -155,21 +182,48 @@ TEST_P(DmxGainTestSuite, update_gain_forcedTrue_triggers_callback) {
 }
 
 /**
- * @brief This test case checks whether the function midi2dmx::dmx::Dmx::update()
- * applies a gain value to the resulting DMX signal, where 1024 means unity gain.
+ * @brief This test case checks whether the midi2dmx::dmx::Dmx::update() function applies a gain
+ * value to the resulting DMX signal if the gain is outside the dead zone.
  *
  */
-TEST_P(DmxGainDeadZoneTestSuite, update_gain_deadZone_triggers_callback) {
-  const uint16_t gainInit = kGainMaxValue >> 1;
+TEST_P(DmxGainOutsideDeadZoneTestSuite, update_gain_outside_deadZone_triggers_callback) {
   const auto gain = GetParam();
-  const uint8_t dmxValue = 126 << 1;
+  const uint16_t gainInit = (gain + kGainMaxValue * 3 / 4) % kGainMaxValue;
+  const uint8_t dmxValue = 254;
+  const uint8_t dmxValueGainInit = (dmxValue * gainInit) / kGainMaxValue;
+  const uint8_t dmxValueGain = (dmxValue * gain) / kGainMaxValue;
+
+  if (gain < 1024) {
+    // If unity gain is selected, this expectation is covered in the else path.
+    EXPECT_CALL(*this, onChangeCallback(0, dmxValue));
+    EXPECT_CALL(*this, onChangeCallback(0, dmxValueGain)).Times(1);
+  } else {
+    // If unity gain is selected, the values dmxValueGain and dmxValue are equal.
+    EXPECT_CALL(*this, onChangeCallback(0, dmxValueGain)).Times(2);
+  }
+  EXPECT_CALL(*this, onChangeCallback(0, dmxValueGainInit));
+
+  mDut.update({0, dmxValue});
+  mDut.update(gainInit);
+  mDut.update(gain);
+}
+
+/**
+ * @brief This test case checks whether the midi2dmx::dmx::Dmx::update() function applies a gain
+ * value to the resulting DMX signal if the gain is outside the dead zone.
+ *
+ */
+TEST_P(DmxGainInsideDeadZoneTestSuite, update_gain_inside_deadZone_dont_triggers_callback) {
+  const auto gain = GetParam();
+  const uint16_t gainInit = 512;
+  const uint8_t dmxValue = 254;
   const uint8_t dmxValueGainInit = (dmxValue * gainInit) / kGainMaxValue;
   const uint8_t dmxValueGain = (dmxValue * gain) / kGainMaxValue;
 
   EXPECT_CALL(*this, onChangeCallback(0, dmxValue));
   EXPECT_CALL(*this, onChangeCallback(0, dmxValueGainInit));
 
-  if ((std::max(gain, gainInit) - gain) > 1) {
+  if ((std::max(gain, gainInit) - std::min(gain, gainInit)) > 1) {
     // The third callback is only triggered if the last gain is outside the dead zone.
     // The dead zone is on the range [-1, 1] around the current gain.
     EXPECT_CALL(*this, onChangeCallback(0, dmxValueGain));

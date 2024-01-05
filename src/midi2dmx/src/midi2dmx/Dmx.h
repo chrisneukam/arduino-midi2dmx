@@ -31,10 +31,6 @@
 #include "DmxValue.h"
 
 namespace midi2dmx::dmx {
-static const uint8_t kAnalogReadBits = 10; /**< bit resolution of analog read */
-static const uint16_t kUnityGainValue = (1 << kAnalogReadBits); /**< factor for unity gain */
-static const uint16_t kGainDeadZone = 1; /**< the offset specifying the dead zone for gain values */
-
 /**
  * @brief Definition of the callback signature.
  *
@@ -91,10 +87,10 @@ class Dmx {
   /**
    * @brief Update the DMX value pair based on MIDI CC values.
    *
-   * @param[in] midiCcChannel the input MIDI CC channel
+   * @param[in] midiCcController the input MIDI CC controller
    * @param[in] midiCcValue the input MIDI CC value
    */
-  void update(const uint8_t midiCcChannel, const uint8_t midiCcValue);
+  void update(const uint8_t midiCcController, const uint8_t midiCcValue);
 
  private:
   /**

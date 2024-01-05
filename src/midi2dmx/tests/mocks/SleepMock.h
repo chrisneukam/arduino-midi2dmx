@@ -1,9 +1,9 @@
 /**
- * @file Midi2Dmx.cpp
+ * @file SleepMock.h
  * @author Christian Neukam
- * @brief Implementation of the Midi2Dmx class.
+ * @brief Mock definition of the midi2dmx::ISleep interface
  * @version 1.0
- * @date 2024-01-04
+ * @date 2024-01-06
  *
  * @copyright Copyright 2024 Christian Neukam. All rights reserved.
  *
@@ -19,26 +19,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "../midi2dmx.h"
+#pragma once
+#include <gmock/gmock.h>
 
-#include "ContinuousController.h"
+#include "ISleep.h"
 
-Midi2Dmx::Midi2Dmx(const uint8_t channel, DmxOnChangeCallback callback, ISerialReader& serial)
-    : DmxOverride(serial), mDmx(callback), mReader(channel, serial) {}
-
-void Midi2Dmx::setGain(const uint16_t gain) { mDmx.update(gain); }
-
-void Midi2Dmx::listen(const bool override) {
-  uint8_t controller;
-  uint8_t value;
-
-  if (override) {
-    sendStaticScene(mDmx);
-  } else {
-    if (mReader.readCc(controller, value)) {
-      mDmx.update(controller, value);
-    }
-  }
-
-  mSleep.sleep(3);  // short refresh to process the callback
-}
+namespace midi2dmx::unittest {
+/**
+ * @brief This class provides the mock implementation of the midi2dmx::ISleep interface.
+ *
+ */
+class SleepMock : public midi2dmx::ISleep {
+ public:
+  /**
+   * @brief Mock methods from midi2dmx::ISleep.
+   *
+   */
+  ///@{
+  MOCK_METHOD(void, sleep, (uint16_t sleep_ms), (override));
+  ///@}
+};
+}  // namespace midi2dmx::unittest

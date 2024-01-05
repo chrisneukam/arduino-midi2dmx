@@ -22,7 +22,7 @@
 #ifndef __MIDI2DMX_I_SERIAL_READER_H__
 #define __MIDI2DMX_I_SERIAL_READER_H__
 
-#include <stdint.h>
+#include "ISleep.h"
 
 namespace midi2dmx {
 
@@ -30,7 +30,7 @@ namespace midi2dmx {
  * @brief Interface of an object reading data from a serial hardware interface.
  *
  */
-class ISerialReader {
+class ISerialReader : public ISleep {
  public:
   /**
    * @brief Destroy the ISerialReader object.
@@ -51,13 +51,6 @@ class ISerialReader {
    * @return int - the value of the data
    */
   virtual int read() = 0;
-
-  /**
-   * @brief Delay the current thread for the given time.
-   *
-   * @param[in] sleep_ms the wait time in ms
-   */
-  virtual void delay(uint8_t sleep_ms) = 0;
 };
 }  // namespace midi2dmx
 

@@ -1,7 +1,7 @@
 /**
  * @file DmxValueTests.cpp
  * @author Christian Neukam
- * @brief Unit Tests for the midi2dmx::dmx::DmxValue
+ * @brief Unit Tests for the midi2dmx::dmx::DmxValue class
  * @version 1.0
  * @date 2023-12-28
  *

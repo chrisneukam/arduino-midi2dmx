@@ -1,7 +1,7 @@
 /**
  * @file MidiReaderTest.cpp
  * @author Christian Neukam
- * @brief Unit Tests for the midi2dmx::dmx::DmxValue
+ * @brief Unit Tests for the midi2dmx::midi::MidiReader class
  * @version 1.0
  * @date 2024-01-04
  *
@@ -22,6 +22,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <algorithm>
+
 #include "MidiReader.h"
 #include "SerialReaderMock.h"
 
@@ -36,8 +38,8 @@ using testing::NiceMock;
  */
 class MidiReaderTestSuite : public testing::Test {
  protected:
-  const uint8_t mChannel = 1;                         /**< the MIDI channel to test */
-  const uint8_t mSyncByte = 0xB0 | (0x0f & mChannel); /**< the first MIDI CC byte */
+  const uint8_t mChannel = 1;     /**< the MIDI channel to test */
+  const uint8_t mSyncByte = 0xb0; /**< the first MIDI CC byte */
 };
 
 /**
@@ -54,12 +56,15 @@ class MidiReaderCcChannelTestSuite : public testing::TestWithParam<uint8_t> {};
  */
 class MidiReaderCcDataByteTestSuite : public testing::TestWithParam<uint8_t> {
  protected:
-  const uint8_t mChannel = 1;                         /**< the MIDI channel to test */
-  const uint8_t mSyncByte = 0xB0 | (0x0f & mChannel); /**< the first MIDI CC byte */
+  const uint8_t mChannel = 1;     /**< the MIDI channel to test */
+  const uint8_t mSyncByte = 0xb0; /**< the first MIDI CC byte */
 };
 
 /**
  * @brief This test suite checks the MIDI channel response of MIDI CC signals.
+ *
+ * As MIDI channels are usually 1-indexed and therefore cover a value range of [1, 16] with a 4-bit
+ * resolution, this nominal value is also used here.
  *
  * The test design is based on boundary-value analysis with the following equivalence
  * groups:
@@ -67,14 +72,15 @@ class MidiReaderCcDataByteTestSuite : public testing::TestWithParam<uint8_t> {
  * | value range  | description |
  * | ------------ | ----------- |
  * | (-inf, 0)    | not required -> input range is unsigned |
- * | [0, 1]       | lower boundary, valid input |
- * | [14, 15]     | upper boundary, valid input |
- * | [16, inf)    | not required -> channel has only 4 bit resolution |
+ * | [0]          | invalid input |
+ * | [1, 2]       | lower boundary, valid input |
+ * | [15, 16]     | upper boundary, valid input |
+ * | [17, inf)    | invalid input |
  *
  * @see MidiReaderCcChannelTestSuite
  */
 INSTANTIATE_TEST_SUITE_P(
-    MIDI, MidiReaderCcChannelTestSuite, testing::Values(0x00, 0x01, 0x0e, 0x0f),
+    MIDI, MidiReaderCcChannelTestSuite, testing::Values(0, 1, 2, 15, 16, 17, 255),
     [](const testing::TestParamInfo<MidiReaderCcChannelTestSuite::ParamType>& info) {
       return std::to_string(info.param);
     });
@@ -111,7 +117,8 @@ TEST_P(MidiReaderCcChannelTestSuite, readCc_channelsInRange_shall_pass) {
   uint8_t controller;
   uint8_t value;
   const uint8_t channel = GetParam();
-  const uint8_t syncByte = 0xB0 | (0x0f & channel);
+  const uint8_t normalizeChannel = std::max((uint8_t)1, std ::min((uint8_t)16, channel)) - 1;
+  const uint8_t syncByte = 0xB0 | (0x0f & normalizeChannel);
   const std::vector<uint8_t> serialData = {syncByte, 0x01, 0x02};
 
   NiceMock<SerialReaderMock> serial(serialData);

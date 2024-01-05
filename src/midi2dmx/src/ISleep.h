@@ -1,9 +1,9 @@
 /**
- * @file Midi2Dmx.cpp
+ * @file ISleep.h
  * @author Christian Neukam
- * @brief Implementation of the Midi2Dmx class.
+ * @brief Definition of the midi2dmx::ISleep interface.
  * @version 1.0
- * @date 2024-01-04
+ * @date 2024-01-06
  *
  * @copyright Copyright 2024 Christian Neukam. All rights reserved.
  *
@@ -19,26 +19,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "../midi2dmx.h"
+#ifndef __MIDI2DMX_I_SLEEP_H__
+#define __MIDI2DMX_I_SLEEP_H__
 
-#include "ContinuousController.h"
+#include <stdint.h>
 
-Midi2Dmx::Midi2Dmx(const uint8_t channel, DmxOnChangeCallback callback, ISerialReader& serial)
-    : DmxOverride(serial), mDmx(callback), mReader(channel, serial) {}
+namespace midi2dmx {
 
-void Midi2Dmx::setGain(const uint16_t gain) { mDmx.update(gain); }
+/**
+ * @brief Interface of an object delaying/sleeping the current process.
+ *
+ */
+class ISleep {
+ public:
+  /**
+   * @brief Destroy the ISleep object.
+   *
+   */
+  virtual ~ISleep() = default;
 
-void Midi2Dmx::listen(const bool override) {
-  uint8_t controller;
-  uint8_t value;
+  /**
+   * @brief Sleep the current thread for the given time.
+   *
+   * @param[in] sleep_ms the wait time in ms
+   */
+  virtual void sleep(uint16_t sleep_ms) = 0;
+};
+}  // namespace midi2dmx
 
-  if (override) {
-    sendStaticScene(mDmx);
-  } else {
-    if (mReader.readCc(controller, value)) {
-      mDmx.update(controller, value);
-    }
-  }
-
-  mSleep.sleep(3);  // short refresh to process the callback
-}
+#endif

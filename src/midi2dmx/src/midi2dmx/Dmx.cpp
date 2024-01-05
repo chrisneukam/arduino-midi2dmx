@@ -29,15 +29,19 @@ using namespace midi2dmx::util;
 
 using midi::ContinuousController;
 
+static const uint8_t kAnalogReadBits = 10; /**< bit resolution of analog read */
+static const uint16_t kUnityGainValue = (1 << kAnalogReadBits); /**< factor for unity gain */
+static const uint16_t kGainDeadZone = 1; /**< the offset specifying the dead zone for gain values */
+
 Dmx::Dmx(DmxOnChangeCallback callback)
     : mDmxValue(0, 0), mGain(kUnityGainValue), mCallback(callback) {}
 
 uint8_t Dmx::valueScaled() const {
-  return (uint32_t)mDmxValue.value() * (uint32_t)mGain >> kAnalogReadBits;
+  return ((uint32_t)mDmxValue.value() * (uint32_t)mGain) >> kAnalogReadBits;
 }
 
 void Dmx::update(const uint16_t gain, const bool force) {
-  const bool isToSet = (max(gain, mGain) - gain) > kGainDeadZone ? true : false;
+  const bool isToSet = (absDiff(gain, mGain) > kGainDeadZone) ? true : false;
 
   if (isToSet || force) {
     mGain = min(gain, kUnityGainValue);
@@ -58,7 +62,7 @@ void Dmx::update(const DmxValue& dmxValue, const bool force) {
   }
 }
 
-void Dmx::update(const uint8_t midiCcChannel, const uint8_t midiCcValue) {
-  update(ContinuousController{midiCcChannel, midiCcValue}.toDmx());
+void Dmx::update(const uint8_t midiCcController, const uint8_t midiCcValue) {
+  update(ContinuousController{midiCcController, midiCcValue}.toDmx());
 }
 }  // namespace midi2dmx::dmx

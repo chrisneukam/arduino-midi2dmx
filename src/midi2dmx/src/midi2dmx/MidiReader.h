@@ -24,7 +24,9 @@
 
 #include <stdint.h>
 
-#include "ISerialReader.h"
+namespace midi2dmx {
+class ISerialReader; /**< forward declaration */
+}
 
 namespace midi2dmx::midi {
 /**
@@ -36,7 +38,11 @@ class MidiReader {
   /**
    * @brief Construct a new MidiReader object.
    *
-   * @param[in] channel the MIDI channel to listen to
+   * As MIDI channels are usually 1-indexed and therefore cover a value range of [1, 16] with a
+   * 4-bit resolution, this nominal value is also used here. If this value range is exceeded, the
+   * channel is clipped to the next limit, e.g. 0 -> 1 or 17 -> 16.
+   *
+   * @param[in] channel the MIDI channel to listen to, in the range [1, 16]
    * @param[in] serial the serial interface
    */
   MidiReader(const uint8_t channel, ISerialReader& serial);

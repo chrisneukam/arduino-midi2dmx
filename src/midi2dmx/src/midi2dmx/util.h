@@ -29,10 +29,10 @@ namespace midi2dmx::util {
  * @tparam T the type of the input data, e.g. uint8_t
  * @param[in] x the first value
  * @param[in] y the second value
- * @return T; the minumum value of x and y
+ * @return T - the minumum value of x and y
  */
 template <typename T>
-constexpr T min(T x, T y) {
+constexpr T min(const T x, const T y) {
   return (x < y) ? x : y;
 }
 
@@ -42,11 +42,24 @@ constexpr T min(T x, T y) {
  * @tparam T the type of the input data, e.g. uint8_t
  * @param[in] x the first value
  * @param[in] y the second value
- * @return T; the maximum value of x and y
+ * @return T - the maximum value of x and y
  */
 template <typename T>
-constexpr T max(T x, T y) {
+constexpr T max(const T x, const T y) {
   return (x > y) ? x : y;
+}
+
+/**
+ * @brief calculate the absolute difference of two values.
+ *
+ * @tparam T the type of the input data, e.g. uint8_t
+ * @param[in] x the first value
+ * @param[in] y the second value
+ * @return T - the absolute difference of \p x and \p y
+ */
+template <typename T>
+constexpr T absDiff(const T x, const T y) {
+  return (x > y) ? (x - y) : (y - x);
 }
 }  // namespace midi2dmx::util
 #endif

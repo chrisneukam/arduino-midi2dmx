@@ -57,6 +57,8 @@ endif (BUILD_DOC)
 ###########################################################
 add_library(midi2dmx STATIC src/midi2dmx/ContinuousController.cpp
                             src/midi2dmx/Dmx.cpp
+                            src/midi2dmx/DmxOverride.cpp
+                            src/midi2dmx/DmxRgbChannels.cpp
                             src/midi2dmx/DmxValue.cpp
                             src/midi2dmx/Midi2Dmx.cpp
                             src/midi2dmx/MidiReader.cpp)
@@ -77,10 +79,13 @@ target_include_directories(midi2dmx PUBLIC src
 ###########################################################
 add_executable(unittests tests/unittests.cpp
                          tests/midi2dmx/ContinuousControllerTests.cpp
+                         tests/midi2dmx/DmxOverrideTests.cpp
+                         tests/midi2dmx/DmxRgbChannelsTests.cpp
                          tests/midi2dmx/DmxTests.cpp
                          tests/midi2dmx/DmxValueTests.cpp
                          tests/midi2dmx/Midi2DmxTests.cpp
                          tests/midi2dmx/MidiReaderTest.cpp
+                         tests/midi2dmx/UtilTests.cpp
                          tests/mocks/SerialReaderMock.cpp)
 target_include_directories(unittests PRIVATE tests/mocks)
 target_link_libraries(unittests gtest gmock)

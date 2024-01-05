@@ -1,7 +1,7 @@
 /**
  * @file SerialReaderMock.h
  * @author Christian Neukam
- * @brief Unit Tests for the midi2dmx::dmx::DmxValue
+ * @brief Mock implementation of the midi2dmx::ISerialReader interface
  * @version 1.0
  * @date 2024-01-04
  *

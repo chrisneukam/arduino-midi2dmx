@@ -1,7 +1,7 @@
 /**
  * @file ContinuousControllerTests.cpp
  * @author Christian Neukam
- * @brief Unit Tests for the midi2dmx::midi::ContinuousController
+ * @brief Unit Tests for the midi2dmx::midi::ContinuousController class
  * @version 1.0
  * @date 2023-12-12
  *

@@ -1,7 +1,7 @@
 /**
  * @file SerialReaderMock.h
  * @author Christian Neukam
- * @brief Unit Tests for the midi2dmx::dmx::DmxValue
+ * @brief Mock definition of the midi2dmx::ISerialReader interface
  * @version 1.0
  * @date 2024-01-04
  *
@@ -47,7 +47,7 @@ class SerialReaderMock : public midi2dmx::ISerialReader {
   ///@{
   MOCK_METHOD(int, available, (), (override));
   MOCK_METHOD(int, read, (), (override));
-  MOCK_METHOD(void, delay, (uint8_t sleep_ms), (override));
+  MOCK_METHOD(void, sleep, (uint16_t sleep_ms), (override));
   ///@}
 
  private:

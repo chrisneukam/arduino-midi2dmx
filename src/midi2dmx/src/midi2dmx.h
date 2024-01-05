@@ -39,11 +39,14 @@
 
 #include "ISerialReader.h"
 #include "midi2dmx/Dmx.h"
+#include "midi2dmx/DmxOverride.h"
+#include "midi2dmx/DmxRgbChannels.h"
 #include "midi2dmx/MidiReader.h"
 
 using midi2dmx::ISerialReader;
 using midi2dmx::dmx::Dmx;
 using midi2dmx::dmx::DmxOnChangeCallback;
+using midi2dmx::dmx::DmxOverride;
 using midi2dmx::midi::MidiReader;
 
 /**
@@ -61,7 +64,7 @@ using midi2dmx::midi::MidiReader;
  * set to adjust the brightness. The signal can only be attenuated.
  *
  */
-class Midi2Dmx {
+class Midi2Dmx : public DmxOverride {
  public:
   /**
    * @brief Construct a new Midi2Dmx object.
@@ -86,13 +89,17 @@ class Midi2Dmx {
    *
    * @param[in] gain the integer based gain attenuation to apply
    */
-  void gainUpdate(const uint16_t gain);
+  void setGain(const uint16_t gain);
 
   /**
-   * @brief Read the next MIDI CC value and update the DMX state.
+   * @brief Listen on the serial interface for the next MIDI CC value and update the DMX state.
    *
+   * If the DMX override mode is active, the serial buffer is emptied but no DMX updates are
+   * generated. Instead, a predefined DMX scene is sent at a constant time interval.
+   *
+   * @param[in] override activate the DMX override mode if `true`
    */
-  void serialUpdate();
+  void listen(const bool override = false);
 
  private:
   Dmx mDmx;           /**< the DMX handler object */

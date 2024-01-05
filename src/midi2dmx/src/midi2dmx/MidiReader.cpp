@@ -21,23 +21,39 @@
  */
 #include "MidiReader.h"
 
+#include "ISerialReader.h"
+#include "util.h"
+
 namespace midi2dmx::midi {
+using namespace midi2dmx::util;
+
+/**
+ * @brief Normalize the input MIDI channel.
+ *
+ * MIDI nominally uses channels in the range [1, 16]. However, 4-bit values in the range [0, 15] are
+ * transmitted at protocol level. With this function, the input values are normalized and clipped to
+ * the value range of the protocol level.
+ *
+ * @param[in] channel the MIDI channel
+ * @return uint8_t - the normalized MIDI channel in the range [0, 15]
+ */
+static uint8_t normalizeChannel(const uint8_t channel) {
+  const uint8_t minMidiChannel = 1;
+  const uint8_t maxMidiChannel = 16;
+  return max(minMidiChannel, min(maxMidiChannel, channel)) - minMidiChannel;
+}
+
 MidiReader::MidiReader(const uint8_t channel, ISerialReader& serial)
-    : mMidiCcSyncFilter(0xb0 | (0x0f & channel)), mSerial(serial) {}
+    : mMidiCcSyncFilter(0xb0 | (0x0f & normalizeChannel(channel))), mSerial(serial) {}
 
 bool MidiReader::syncCc() {
-  bool returnValue;
+  bool returnValue = false;
 
-  while (true) {
-    if (!mSerial.available()) {
-      returnValue = false;
-      break;
-    }
+  while (mSerial.available()) {
     uint8_t value = mSerial.read();
 
     if (value == mMidiCcSyncFilter) {
       returnValue = true;
-      mSerial.delay(2);
       break;
     }
   }
@@ -61,7 +77,7 @@ bool MidiReader::readCc(uint8_t& controller, uint8_t& value) {
   uint8_t nMidiBytes = 0;
   bool returnValue = false;
 
-  if (syncCc() && mSerial.available() >= 2) {
+  if (syncCc() && (mSerial.available() >= 2)) {
     returnValue = readByte(controller) & readByte(value);
   }
 

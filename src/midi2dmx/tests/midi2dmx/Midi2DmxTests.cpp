@@ -1,7 +1,7 @@
 /**
  * @file Midi2DmxTests.cpp
  * @author Christian Neukam
- * @brief Unit Tests for the midi2dmx::dmx::DmxValue
+ * @brief Unit Tests for the Midi2Dmx class.
  * @version 1.0
  * @date 2024-01-04
  *
@@ -42,7 +42,7 @@ class Midi2DmxTestSuite : public testing::Test {
    */
   Midi2DmxTestSuite()
       : mChannel(1),
-        mSyncByte(0xB0 | (0x0f & mChannel)),
+        mSyncByte(0xb0),
         mSerialData({mSyncByte, 0x01, 0x02, mSyncByte, 0x03}),
         mSerial(mSerialData),
         mDut(mChannel,
@@ -73,7 +73,7 @@ class Midi2DmxTestSuite : public testing::Test {
 TEST_F(Midi2DmxTestSuite, serialUpdate_shall_trigger_callback_with_valid_serialData) {
   EXPECT_CALL(*this, onChangeCallback(mSerialData[1], mSerialData[2] << 1));
 
-  mDut.serialUpdate();
+  mDut.listen();
 }
 
 /**
@@ -86,6 +86,6 @@ TEST_F(Midi2DmxTestSuite, serialUpdate_shall_not_trigger_callback_with_invalid_s
   EXPECT_CALL(*this, onChangeCallback(_, _)).Times(0);
 
   mSerial.read();  // Skip the first byte in mSerialData so that the data packet becomes invalid.
-  mDut.serialUpdate();
+  mDut.listen();
 }
 }  // namespace midi2dmx::unittest
